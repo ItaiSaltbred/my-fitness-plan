@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>My Fitness Plan</title>
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="My Fitness Plan" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; min-height: 100vh; }
+    #app { max-width: 480px; margin: 0 auto; padding: 16px; padding-bottom: 40px; }
+    button { font-family: inherit; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ============================================================
+//  DATA — Edit PLAN_META every Sunday to update your plan
+// ============================================================
+const PLAN_META = {
+  weekOf: "June 9, 2026",
+  currentWeight: 163,
+  goalWeight: 180,
+  calories: 3315,
+  protein: 188,
+  carbs: 433,
+  fat: 91
+};
+
+const WORKOUTS = {
+  Sunday: null, Saturday: null,
+  Monday: {
+    type: "UPPER A — Chest & Back + Biceps 💪", color: "#ef4444",
+    note: "~55 min | Focus: chest, back, biceps",
+    exercises: [
+      { name: "Chest Press Machine",        sets: "4 x 10", rest: "90s" },
+      { name: "Lat Pulldown Machine",        sets: "4 x 10", rest: "90s" },
+      { name: "Incline Chest Press Machine", sets: "3 x 12", rest: "75s" },
+      { name: "Seated Cable Row",            sets: "3 x 12", rest: "75s" },
+      { name: "Bicep Curl Machine",          sets: "3 x 12", rest: "60s" },
+      { name: "Cable Bicep Curl",            sets: "3 x 12", rest: "60s" },
+      { name: "Hammer Curl (Dumbbells)",     sets: "3 x 12", rest: "60s" },
+    ]
+  },
+  Tuesday: {
+    type: "LOWER A — Quads & Glutes 🦵", color: "#8b5cf6",
+    note: "~50 min | Focus: quads, glutes, calves",
+    exercises: [
+      { name: "Leg Press Machine",      sets: "4 x 12", rest: "90s" },
+      { name: "Leg Extension Machine",  sets: "3 x 15", rest: "60s" },
+      { name: "Glute Kickback Machine", sets: "3 x 15", rest: "60s" },
+      { name: "Hip Abductor Machine",   sets: "3 x 15", rest: "60s" },
+      { name: "Calf Raise Machine",     sets: "4 x 15", rest: "45s" },
+    ]
+  },
+  Wednesday: {
+    type: "CARDIO + CORE 🔥", color: "#f97316",
+    note: "~50 min | Active recovery + core strength",
+    exercises: [
+      { name: "Treadmill / Stairmaster",      sets: "25 min",      rest: "—"  },
+      { name: "Ab Crunch Machine",            sets: "3 x 20",      rest: "45s" },
+      { name: "Cable Woodchop",               sets: "3 x 15 each", rest: "45s" },
+      { name: "Plank Hold",                   sets: "3 x 45s",     rest: "30s" },
+      { name: "Leg Raise (Bench or Hanging)", sets: "3 x 15",      rest: "45s" },
+    ]
+  },
+  Thursday: {
+    type: "UPPER B — Shoulders & Back + Triceps 🏋️", color: "#3b82f6",
+    note: "~55 min | Focus: shoulders, back, triceps",
+    exercises: [
+      { name: "Shoulder Press Machine",            sets: "4 x 10", rest: "90s" },
+      { name: "Lat Pulldown (Wide Grip)",          sets: "4 x 10", rest: "90s" },
+      { name: "Lateral Raise Machine",             sets: "3 x 15", rest: "60s" },
+      { name: "Rear Delt Fly Machine",             sets: "3 x 15", rest: "60s" },
+      { name: "Tricep Pushdown (Cable)",           sets: "3 x 12", rest: "60s" },
+      { name: "Overhead Tricep Extension (Cable)", sets: "3 x 12", rest: "60s" },
+      { name: "Tricep Dip Machine",                sets: "3 x 12", rest: "60s" },
+    ]
+  },
+  Friday: {
+    type: "LOWER B — Hamstrings & Posterior Chain 🦵", color: "#8b5cf6",
+    note: "~50 min | Focus: hamstrings, glutes, calves",
+    exercises: [
+      { name: "Leg Curl Machine",                       sets: "4 x 12", rest: "90s" },
+      { name: "Romanian Deadlift (Machine or Barbell)",  sets: "3 x 10", rest: "90s" },
+      { name: "Leg Press Machine (feet high)",          sets: "3 x 12", rest: "90s" },
+      { name: "Hip Abductor Machine",                   sets: "3 x 15", rest: "60s" },
+      { name: "Calf Raise Machine",                     sets: "4 x 15", rest: "45s" },
+    ]
+  }
+};
+
+const MEALS = {
+  Sunday: {
+    prepDay: true,
+    totals: { cal: 3320, protein: 189, carbs: 434, fat: 92 },
+    meals: [
+      { time: "8:00 AM",  name: "🍳 Breakfast",         label: "Eggs + Turkey Sausage + Toast",
+        items: ["3 large eggs (scrambled)","3 oz turkey sausage links","2 slices whole wheat toast","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 680, protein: 44, carbs: 58, fat: 24 } },
+      { time: "11:00 AM", name: "🥡 Meal Prep Block 1", label: "Make Breakfast Burritos × 5", prepNote: true,
+        items: ["15 large eggs (3 per burrito)","10 oz ground turkey cooked (2 oz per burrito)","2½ cups cooked white rice (½ cup per burrito)","1¼ cups black beans canned drained (¼ cup per burrito)","10 tbsp salsa (2 tbsp per burrito)","5 large flour tortillas (10-inch)","→ Wrap tightly in foil, freeze all 5"],
+        macros: { cal: 0, protein: 0, carbs: 0, fat: 0 } },
+      { time: "1:00 PM",  name: "🥡 Meal Prep Block 2", label: "Turkey Rice Bowls × 5 + Bake Chicken × 5", prepNote: true,
+        items: ["30 oz ground turkey 93% lean (6 oz per bowl)","7½ cups cooked white rice (1½ cups per bowl)","2½ cups bell peppers & onions sautéed (½ cup per bowl)","10 tbsp low-sodium teriyaki sauce (2 tbsp per bowl)","5 tsp olive oil for cooking","→ Portion into 5 containers, refrigerate","30 oz boneless skinless chicken thighs (6 oz per serving)","Garlic powder, paprika, salt to taste","→ Season, bake 400°F for 25 min, refrigerate"],
+        macros: { cal: 0, protein: 0, carbs: 0, fat: 0 } },
+      { time: "3:00 PM",  name: "🥤 Protein Shake",    label: "Whey + Milk + Banana",
+        items: ["2 scoops whey protein (~50g protein)","1 cup whole milk (8 fl oz)","1 medium banana"],
+        macros: { cal: 520, protein: 56, carbs: 48, fat: 8 } },
+      { time: "5:30 PM",  name: "🍗 Dinner",           label: "Chicken + Brown Rice + Broccoli",
+        items: ["6 oz baked chicken thigh (from prep)","1 cup cooked brown rice","1½ cups frozen broccoli (microwaved 4 min)","1 tbsp low-sodium soy sauce"],
+        macros: { cal: 620, protein: 47, carbs: 60, fat: 14 } },
+      { time: "8:00 PM",  name: "🍌 Evening Snack",    label: "Rice Cakes + Peanut Butter + Nuts",
+        items: ["2 rice cakes","2 tbsp peanut butter","1 oz mixed nuts"],
+        macros: { cal: 330, protein: 10, carbs: 28, fat: 20 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Fruit",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup pineapple chunks"],
+        macros: { cal: 270, protein: 28, carbs: 30, fat: 4 } },
+    ]
+  },
+  Monday: {
+    prepDay: false,
+    totals: { cal: 3310, protein: 190, carbs: 432, fat: 91 },
+    meals: [
+      { time: "6:30 AM",  name: "🥤 Pre-Workout",      label: "Whey + Oats + Milk + Honey", preWorkout: true,
+        items: ["1½ scoops whey protein (~37g protein)","½ cup dry rolled oats","1 cup whole milk (8 fl oz)","1 tbsp honey"],
+        macros: { cal: 560, protein: 45, carbs: 68, fat: 9 } },
+      { time: "9:00 AM",  name: "🌯 Breakfast",        label: "Burrito from Freezer + OJ",
+        items: ["1 prepped burrito (microwave 2–3 min from frozen)","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 740, protein: 40, carbs: 86, fat: 22 } },
+      { time: "12:00 PM", name: "🍚 Lunch",            label: "Turkey Rice Bowl from Prep",
+        items: ["1 prepped container turkey rice bowl (microwave 2 min)","Hot sauce or soy sauce to taste"],
+        macros: { cal: 750, protein: 48, carbs: 95, fat: 14 } },
+      { time: "3:00 PM",  name: "🍌 Afternoon Snack",  label: "Banana + Peanut Butter",
+        items: ["1 medium banana","1½ tbsp peanut butter"],
+        macros: { cal: 230, protein: 5, carbs: 32, fat: 10 } },
+      { time: "6:00 PM",  name: "🍗 Dinner",           label: "Chicken Thigh + Sweet Potato + Broccoli",
+        items: ["6 oz prepped chicken thigh (reheated)","1 medium sweet potato (~6 oz microwaved 5 min)","1 cup frozen broccoli (microwaved 3 min)","1 tbsp olive oil drizzled on potato"],
+        macros: { cal: 620, protein: 43, carbs: 62, fat: 18 },
+        fastFood: { name: "🚗 Short on time? Chipotle", items: ["Chicken burrito bowl: white rice, black beans, grilled chicken, fajita veggies, guac, salsa","NO cheese, NO sour cream"], macros: { cal: 730, protein: 42, carbs: 78, fat: 24 } } },
+      { time: "8:30 PM",  name: "🥜 Evening Snack",    label: "Greek Yogurt + Rice Cakes + Almonds",
+        items: ["1 cup Greek yogurt plain nonfat (8 oz)","2 rice cakes","1 oz almonds"],
+        macros: { cal: 350, protein: 28, carbs: 30, fat: 12 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Berries",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup mixed berries"],
+        macros: { cal: 260, protein: 28, carbs: 28, fat: 4 } },
+    ]
+  },
+  Tuesday: {
+    prepDay: false,
+    totals: { cal: 3305, protein: 188, carbs: 430, fat: 90 },
+    meals: [
+      { time: "6:30 AM",  name: "🥤 Pre-Workout",      label: "Whey + Milk + Berries + Banana", preWorkout: true,
+        items: ["1½ scoops whey protein (~37g protein)","1 cup whole milk (8 fl oz)","½ cup frozen mixed berries","1 medium banana"],
+        macros: { cal: 500, protein: 42, carbs: 58, fat: 8 } },
+      { time: "9:00 AM",  name: "🌯 Breakfast",        label: "Burrito from Freezer + OJ",
+        items: ["1 prepped burrito (microwave 2–3 min from frozen)","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 740, protein: 40, carbs: 86, fat: 22 } },
+      { time: "12:00 PM", name: "🍚 Lunch",            label: "Turkey Rice Bowl from Prep",
+        items: ["1 prepped container turkey rice bowl (microwave 2 min)"],
+        macros: { cal: 750, protein: 48, carbs: 95, fat: 14 } },
+      { time: "3:00 PM",  name: "🍌 Afternoon Snack",  label: "Banana + Mixed Nuts",
+        items: ["1 medium banana","1 oz mixed nuts"],
+        macros: { cal: 210, protein: 4, carbs: 30, fat: 10 } },
+      { time: "6:00 PM",  name: "🍗 Dinner",           label: "Chicken Thigh + Brown Rice + Green Beans",
+        items: ["6 oz prepped chicken thigh (reheated)","1 cup cooked brown rice","1 cup green beans (steamed or microwaved 3 min)","1 tbsp soy sauce"],
+        macros: { cal: 590, protein: 45, carbs: 62, fat: 14 },
+        fastFood: { name: "🚗 Short on time? Wingstop", items: ["8 classic wings lemon pepper or original hot (no cheese sauce)","1 medium fries"], macros: { cal: 730, protein: 40, carbs: 72, fat: 28 } } },
+      { time: "8:30 PM",  name: "🥜 Evening Snack",    label: "Protein Bar + Rice Cakes + PB",
+        items: ["1 protein bar (~20g protein, check label)","2 rice cakes","1 tbsp peanut butter"],
+        macros: { cal: 380, protein: 26, carbs: 42, fat: 12 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Pineapple",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup pineapple chunks"],
+        macros: { cal: 270, protein: 28, carbs: 30, fat: 4 } },
+    ]
+  },
+  Wednesday: {
+    prepDay: false,
+    totals: { cal: 3315, protein: 189, carbs: 433, fat: 91 },
+    meals: [
+      { time: "6:30 AM",  name: "🥤 Pre-Workout",      label: "Whey + Milk + PB + Banana", preWorkout: true,
+        items: ["1½ scoops whey protein (~37g protein)","1 cup whole milk (8 fl oz)","2 tbsp peanut butter","1 medium banana"],
+        macros: { cal: 580, protein: 46, carbs: 52, fat: 20 } },
+      { time: "9:00 AM",  name: "🌯 Breakfast",        label: "Burrito from Freezer + OJ",
+        items: ["1 prepped burrito (microwave 2–3 min from frozen)","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 740, protein: 40, carbs: 86, fat: 22 } },
+      { time: "12:00 PM", name: "🍚 Lunch",            label: "Turkey Rice Bowl from Prep",
+        items: ["1 prepped container turkey rice bowl (microwave 2 min)","1 tbsp hot sauce or soy sauce"],
+        macros: { cal: 750, protein: 48, carbs: 95, fat: 14 } },
+      { time: "3:00 PM",  name: "🍌 Afternoon Snack",  label: "Banana + Peanut Butter",
+        items: ["1 medium banana","1½ tbsp peanut butter"],
+        macros: { cal: 230, protein: 5, carbs: 32, fat: 10 } },
+      { time: "6:00 PM",  name: "🍗 Dinner",           label: "Chicken + Brown Rice + Broccoli",
+        items: ["6 oz prepped chicken thigh (reheated)","1 cup cooked brown rice","1½ cups frozen broccoli (microwaved 4 min)","1 tbsp low-sodium soy sauce"],
+        macros: { cal: 620, protein: 47, carbs: 60, fat: 14 },
+        fastFood: { name: "🚗 Short on time? Chick-fil-A", items: ["Grilled chicken sandwich NO cheese","Medium waffle fries","Fruit cup"], macros: { cal: 760, protein: 38, carbs: 90, fat: 22 } } },
+      { time: "8:30 PM",  name: "🥜 Evening Snack",    label: "Greek Yogurt + Almonds",
+        items: ["1 cup Greek yogurt plain nonfat (8 oz)","1 oz almonds"],
+        macros: { cal: 290, protein: 25, carbs: 16, fat: 12 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Berries",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup mixed berries"],
+        macros: { cal: 260, protein: 28, carbs: 28, fat: 4 } },
+    ]
+  },
+  Thursday: {
+    prepDay: false,
+    totals: { cal: 3300, protein: 188, carbs: 430, fat: 90 },
+    meals: [
+      { time: "6:30 AM",  name: "🥤 Pre-Workout",      label: "Whey + Oats + Milk + Honey", preWorkout: true,
+        items: ["1½ scoops whey protein (~37g protein)","½ cup dry rolled oats","1 cup whole milk (8 fl oz)","1 tsp honey"],
+        macros: { cal: 550, protein: 45, carbs: 65, fat: 9 } },
+      { time: "9:00 AM",  name: "🌯 Breakfast",        label: "Burrito from Freezer + OJ",
+        items: ["1 prepped burrito (microwave 2–3 min from frozen)","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 740, protein: 40, carbs: 86, fat: 22 } },
+      { time: "12:00 PM", name: "🍚 Lunch",            label: "Turkey Rice Bowl from Prep",
+        items: ["1 prepped container turkey rice bowl (microwave 2 min)"],
+        macros: { cal: 750, protein: 48, carbs: 95, fat: 14 } },
+      { time: "3:00 PM",  name: "🍌 Afternoon Snack",  label: "Protein Bar + Banana",
+        items: ["1 protein bar (~20g protein)","1 medium banana"],
+        macros: { cal: 320, protein: 23, carbs: 42, fat: 8 } },
+      { time: "6:00 PM",  name: "🍗 Dinner",           label: "Chicken + Sweet Potato + Green Beans",
+        items: ["6 oz prepped chicken thigh (reheated)","1 medium sweet potato (~6 oz microwaved)","1 cup green beans (steamed)","1 tbsp olive oil"],
+        macros: { cal: 620, protein: 43, carbs: 64, fat: 18 },
+        fastFood: { name: "🚗 Short on time? Raising Cane's", items: ["3 chicken fingers (no cheese sauce)","Crinkle fries","Coleslaw"], macros: { cal: 730, protein: 40, carbs: 72, fat: 28 } } },
+      { time: "8:30 PM",  name: "🥜 Evening Snack",    label: "Rice Cakes + PB + Mixed Nuts",
+        items: ["2 rice cakes","1½ tbsp peanut butter","1 oz mixed nuts"],
+        macros: { cal: 330, protein: 10, carbs: 28, fat: 20 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Pineapple",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup pineapple chunks"],
+        macros: { cal: 270, protein: 28, carbs: 30, fat: 4 } },
+    ]
+  },
+  Friday: {
+    prepDay: false,
+    totals: { cal: 3310, protein: 190, carbs: 431, fat: 91 },
+    meals: [
+      { time: "6:30 AM",  name: "🥤 Pre-Workout",      label: "Whey + Milk + Banana", preWorkout: true,
+        items: ["1½ scoops whey protein (~37g protein)","1 cup whole milk (8 fl oz)","1 medium banana"],
+        macros: { cal: 480, protein: 42, carbs: 48, fat: 8 } },
+      { time: "9:00 AM",  name: "🌯 Breakfast",        label: "Burrito from Freezer + OJ",
+        items: ["1 prepped burrito (last of the batch)","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 740, protein: 40, carbs: 86, fat: 22 } },
+      { time: "12:00 PM", name: "🍗 Lunch",            label: "Chicken Thigh + Rice + Broccoli",
+        items: ["6 oz prepped chicken thigh (reheated)","1½ cups cooked white rice","1 cup frozen broccoli (microwaved 3 min)","1 tbsp teriyaki sauce"],
+        macros: { cal: 720, protein: 48, carbs: 84, fat: 16 } },
+      { time: "3:00 PM",  name: "🍌 Afternoon Snack",  label: "Banana + Almonds",
+        items: ["1 medium banana","1 oz almonds"],
+        macros: { cal: 220, protein: 6, carbs: 30, fat: 10 } },
+      { time: "6:00 PM",  name: "🍗 Dinner",           label: "Ground Turkey + Pasta + Marinara",
+        items: ["5 oz ground turkey 93% lean (cooked)","2 cups cooked penne pasta (~3 oz dry)","½ cup marinara sauce (no meat)","1 tsp olive oil","1 tsp garlic powder"],
+        macros: { cal: 720, protein: 46, carbs: 88, fat: 14 },
+        fastFood: { name: "🚗 Short on time? Chick-fil-A", items: ["Grilled chicken sandwich NO cheese","Large waffle fries","Lemonade"], macros: { cal: 850, protein: 40, carbs: 102, fat: 24 } } },
+      { time: "8:30 PM",  name: "🥜 Evening Snack",    label: "Greek Yogurt + PB + Rice Cakes",
+        items: ["1 cup Greek yogurt plain nonfat (8 oz)","1 tbsp peanut butter","2 rice cakes"],
+        macros: { cal: 360, protein: 28, carbs: 34, fat: 10 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Berries",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup mixed berries"],
+        macros: { cal: 260, protein: 28, carbs: 28, fat: 4 } },
+    ]
+  },
+  Saturday: {
+    prepDay: false,
+    totals: { cal: 3320, protein: 189, carbs: 435, fat: 91 },
+    meals: [
+      { time: "9:00 AM",  name: "🍳 Breakfast",        label: "Eggs + Turkey Sausage + Toast",
+        items: ["4 large eggs (scrambled)","3 oz turkey sausage links","2 slices whole wheat toast","1 cup orange juice (8 fl oz)"],
+        macros: { cal: 720, protein: 44, carbs: 62, fat: 26 } },
+      { time: "12:00 PM", name: "🥤 Protein Shake",    label: "Whey + Milk + Frozen Fruit",
+        items: ["2 scoops whey protein (~50g protein)","1 cup whole milk (8 fl oz)","½ cup frozen mixed fruit"],
+        macros: { cal: 480, protein: 54, carbs: 36, fat: 8 } },
+      { time: "2:00 PM",  name: "🍝 Lunch",            label: "Ground Turkey Pasta",
+        items: ["5 oz ground turkey 93% lean (cooked)","2 cups cooked penne pasta (~3 oz dry)","½ cup marinara sauce","1 tsp olive oil","1 tsp garlic powder"],
+        macros: { cal: 720, protein: 46, carbs: 88, fat: 14 } },
+      { time: "5:00 PM",  name: "🍗 Dinner",           label: "Chicken Breast + Sweet Potato + Green Beans",
+        items: ["6 oz baked chicken breast","1 large sweet potato (~8 oz microwaved)","1 cup green beans (steamed)","1 tbsp olive oil"],
+        macros: { cal: 620, protein: 47, carbs: 70, fat: 14 } },
+      { time: "7:30 PM",  name: "🥜 Evening Snack",    label: "Trail Mix + Banana + PB",
+        items: ["1 oz trail mix","1 medium banana","1 tbsp peanut butter"],
+        macros: { cal: 290, protein: 6, carbs: 40, fat: 12 } },
+      { time: "10:00 PM", name: "🥛 Before Bed",       label: "Cottage Cheese + Pineapple",
+        items: ["1 cup low-fat cottage cheese (8 oz)","½ cup pineapple chunks"],
+        macros: { cal: 270, protein: 28, carbs: 30, fat: 4 } },
+    ]
+  }
+};
+
+const GROCERY = [
+  { category: "🥩 Proteins", items: [
+    { item: "Ground turkey 93% lean",          qty: "4 lbs (64 oz)",    note: "Burrito filling + rice bowls + pasta" },
+    { item: "Boneless skinless chicken thighs", qty: "3.75 lbs (60 oz)", note: "Meal prep dinners Mon–Fri" },
+    { item: "Chicken breast",                   qty: "6 oz",             note: "Saturday dinner only" },
+    { item: "Turkey sausage links",             qty: "9 oz",             note: "Sunday & Saturday breakfast" },
+    { item: "Whey protein powder",              qty: "~40 scoops",       note: "Pre-workout shakes all week" },
+    { item: "Protein bars (20g protein each)",  qty: "3 bars",           note: "Tue, Thu snacks + extra" },
+  ]},
+  { category: "🥚 Dairy & Eggs", items: [
+    { item: "Large eggs",               qty: "22 eggs",         note: "15 for burrito batch + Sun & Sat breakfast" },
+    { item: "Whole milk",               qty: "1 gallon",        note: "Protein shakes all week" },
+    { item: "Low-fat cottage cheese",   qty: "56 oz (~7 cups)", note: "Before bed every night" },
+    { item: "Plain nonfat Greek yogurt", qty: "32 oz (4 cups)", note: "Evening snacks Mon, Wed, Fri" },
+  ]},
+  { category: "🍚 Grains & Carbs", items: [
+    { item: "White rice (dry)",               qty: "5 lb bag",        note: "Burrito batch + rice bowls + dinners" },
+    { item: "Brown rice (dry)",               qty: "2 lb bag",        note: "Wed & Thu dinners" },
+    { item: "Dry rolled oats",                qty: "18 oz container", note: "Pre-workout shakes Mon & Thu" },
+    { item: "Large flour tortillas (10-inch)", qty: "5 count",        note: "Breakfast burrito batch" },
+    { item: "Whole wheat bread",              qty: "1 loaf",          note: "Sun & Sat breakfast toast" },
+    { item: "Penne pasta (dry)",              qty: "12 oz box",       note: "Fri dinner + Sat lunch" },
+    { item: "Rice cakes",                     qty: "1 bag (14 cakes)", note: "Snacks throughout the week" },
+  ]},
+  { category: "🥦 Produce & Frozen", items: [
+    { item: "Bananas",               qty: "10 bananas",       note: "Daily snacks + shakes" },
+    { item: "Medium sweet potatoes", qty: "4 medium",         note: "Mon, Thu, Sat dinners" },
+    { item: "Bell peppers (mixed)",  qty: "3 large",          note: "Turkey rice bowls" },
+    { item: "Yellow onion",          qty: "2 medium",         note: "Turkey rice bowls" },
+    { item: "Frozen broccoli",       qty: "48 oz (3 lb bag)", note: "Dinners throughout week" },
+    { item: "Frozen green beans",    qty: "24 oz bag",        note: "Tue, Thu, Sat dinners" },
+    { item: "Frozen mixed berries",  qty: "16 oz bag",        note: "Shakes + before bed snacks" },
+    { item: "Pineapple chunks",      qty: "20 oz",            note: "Before bed Sun, Tue, Thu, Sat" },
+    { item: "Trail mix",             qty: "4 oz",             note: "Sat evening snack + Sun snack" },
+  ]},
+  { category: "🥫 Canned & Pantry", items: [
+    { item: "Black beans (canned)",      qty: "2 cans (15 oz each)", note: "Burrito batch" },
+    { item: "Salsa (jar)",               qty: "1 jar (16 oz)",       note: "Burrito batch" },
+    { item: "Marinara sauce (jar)",      qty: "1 jar (24 oz)",       note: "Fri dinner + Sat lunch" },
+    { item: "Low-sodium teriyaki sauce", qty: "1 bottle (10 oz)",    note: "Rice bowls + dinners" },
+    { item: "Low-sodium soy sauce",      qty: "1 bottle",            note: "Dinners Wed & Thu" },
+    { item: "Peanut butter",             qty: "1 jar (18 oz)",       note: "Snacks all week" },
+    { item: "Mixed nuts",                qty: "8 oz bag",            note: "Snacks Sun, Mon, Thu" },
+    { item: "Almonds",                   qty: "4 oz bag",            note: "Snacks Wed, Fri" },
+    { item: "Honey",                     qty: "1 small bottle",      note: "Pre-workout shakes Mon & Thu" },
+  ]},
+  { category: "🧂 Oils & Seasonings", items: [
+    { item: "Olive oil",     qty: "1 bottle",    note: "Cooking throughout the week" },
+    { item: "Garlic powder", qty: "1 container", note: "Chicken seasoning + pasta" },
+    { item: "Paprika",       qty: "1 container", note: "Chicken seasoning" },
+    { item: "Salt & pepper", qty: "1 set",       note: "General seasoning" },
+  ]},
+  { category: "🧃 Drinks", items: [
+    { item: "Orange juice", qty: "64 fl oz (half gallon)", note: "Breakfast every morning" },
+  ]}
+];
+
+// ============================================================
+//  APP
+// ============================================================
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAY_COLORS = { Sunday:"#10b981",Monday:"#ef4444",Tuesday:"#8b5cf6",Wednesday:"#f97316",Thursday:"#3b82f6",Friday:"#8b5cf6",Saturday:"#10b981" };
+const SPLIT = [
+  {d:"MON",l:"Upper A\nBiceps",c:"#ef4444"},{d:"TUE",l:"Lower A\nQuads",c:"#8b5cf6"},
+  {d:"WED",l:"Cardio\n+Core",c:"#f97316"},{d:"THU",l:"Upper B\nTriceps",c:"#3b82f6"},
+  {d:"FRI",l:"Lower B\nHams",c:"#8b5cf6"},{d:"SAT",l:"Rest",c:"#94a3b8"},{d:"SUN",l:"Rest+\nPrep",c:"#10b981"}
+];
+
+let S = {
+  day: DAYS[new Date().getDay()],
+  tab: "meal",
+  xMeal: null,
+  xFast: null,
+  checked: JSON.parse(localStorage.getItem("gc") || "{}")
+};
+
+const h = (tag, attrs={}, ...kids) => {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v]) => {
+    if (k==="style" && typeof v==="object") Object.assign(e.style, v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k,v);
+  });
+  kids.flat().forEach(c => c!=null && e.append(typeof c==="string"?c:c));
+  return e;
+};
+const d=(a,...c)=>h("div",a,...c), s=(a,...c)=>h("span",a,...c), b=(a,...c)=>h("button",a,...c);
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  const col = DAY_COLORS[S.day];
+
+  // Header
+  app.append(d({style:{background:"linear-gradient(135deg,#1e293b,#334155)",borderRadius:"16px",padding:"16px",marginBottom:"16px",color:"white",textAlign:"center"}},
+    d({style:{fontSize:"22px",fontWeight:"800"}},"💪 My Fitness Plan"),
+    d({style:{fontSize:"12px",opacity:"0.7",marginTop:"4px"}},`Week of ${PLAN_META.weekOf} • ${PLAN_META.currentWeight} → ${PLAN_META.goalWeight} lbs`),
+    d({style:{marginTop:"8px",background:"rgba(255,255,255,0.1)",borderRadius:"10px",padding:"6px 12px",display:"inline-block",fontSize:"11px"}},
+      `${PLAN_META.calories} cal • ${PLAN_META.protein}P / ${PLAN_META.carbs}C / ${PLAN_META.fat}F`)
+  ));
+
+  // Split bar
+  const sb = d({style:{display:"flex",gap:"5px",marginBottom:"16px",overflowX:"auto",paddingBottom:"2px"}});
+  SPLIT.forEach(x=>sb.append(d({style:{flex:"0 0 auto",background:"#fff",borderRadius:"10px",padding:"7px 9px",textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"}},
+    d({style:{fontWeight:"800",fontSize:"10px",color:x.c}},x.d),
+    d({style:{fontSize:"9px",color:"#64748b",marginTop:"2px",whiteSpace:"pre-line",lineHeight:"1.3"}},x.l)
+  )));
+  app.append(sb);
+
+  // Day tabs
+  const dr = d({style:{display:"flex",gap:"6px",overflowX:"auto",paddingBottom:"4px",marginBottom:"16px"}});
+  DAYS.forEach(day=>{
+    const a=S.day===day, c=DAY_COLORS[day];
+    dr.append(b({style:{flex:"0 0 auto",padding:"8px 12px",borderRadius:"20px",border:"none",cursor:"pointer",fontWeight:"700",fontSize:"12px",
+      background:a?c:"#fff",color:a?"#fff":"#64748b",boxShadow:a?`0 4px 12px ${c}55`:"0 1px 3px rgba(0,0,0,0.1)"},
+      onClick:()=>{S.day=day;S.xMeal=null;S.xFast=null;render();}},day.slice(0,3).toUpperCase()));
+  });
+  app.append(dr);
+
+  // Section tabs
+  const tr = d({style:{display:"flex",background:"#fff",borderRadius:"12px",padding:"4px",marginBottom:"16px",boxShadow:"0 1px 3px rgba(0,0,0,0.1)"}});
+  [["meal","🍽️ Meals"],["workout","🏋️ Workout"],["grocery","🛒 Grocery"]].forEach(([tab,lbl])=>{
+    const a=S.tab===tab;
+    tr.append(b({style:{flex:"1",padding:"10px 4px",border:"none",cursor:"pointer",borderRadius:"10px",fontWeight:"700",fontSize:"13px",
+      background:a?col:"transparent",color:a?"#fff":"#94a3b8"},
+      onClick:()=>{S.tab=tab;render();}},lbl));
+  });
+  app.append(tr);
+
+  if(S.tab==="meal")    renderMeals(app,col);
+  if(S.tab==="workout") renderWorkout(app);
+  if(S.tab==="grocery") renderGrocery(app,col);
+}
+
+function macroBar(label,val,goal,c){
+  const pct=Math.min((val/goal)*100,100);
+  return d({style:{flex:"1"}},
+    d({style:{display:"flex",justifyContent:"space-between",fontSize:"11px",fontWeight:"700",color:"#64748b",marginBottom:"3px"}},
+      s({},label),s({style:{color:c}},`${val}g`)),
+    d({style:{background:"#f1f5f9",borderRadius:"99px",height:"6px"}},
+      d({style:{width:`${pct}%`,background:c,borderRadius:"99px",height:"6px"}})),
+    d({style:{fontSize:"10px",color:"#94a3b8",marginTop:"2px"}},`/${goal}g`)
+  );
+}
+
+function renderMeals(app,col){
+  const meal=MEALS[S.day]; if(!meal)return;
+  if(meal.prepDay) app.append(d({style:{background:"#fef3c7",border:"2px solid #f59e0b",borderRadius:"12px",padding:"12px",marginBottom:"12px",fontSize:"13px"}},
+    "🥡 MEAL PREP DAY! Batch cook today for the entire week."));
+
+  const tc=d({style:{background:"#fff",borderRadius:"14px",padding:"14px",marginBottom:"14px",boxShadow:"0 1px 4px rgba(0,0,0,0.07)"}});
+  tc.append(d({style:{display:"flex",justifyContent:"space-between",marginBottom:"10px"}},
+    s({style:{fontWeight:"800",fontSize:"15px"}},"Daily Totals"),
+    s({style:{fontWeight:"800",fontSize:"15px",color:col}},`~${meal.totals.cal} cal`)));
+  const br=d({style:{display:"flex",gap:"12px"}});
+  [["Protein",meal.totals.protein,PLAN_META.protein,"#ef4444"],
+   ["Carbs",meal.totals.carbs,PLAN_META.carbs,"#f97316"],
+   ["Fat",meal.totals.fat,PLAN_META.fat,"#3b82f6"]
+  ].forEach(([l,v,g,c])=>br.append(macroBar(l,v,g,c)));
+  tc.append(br); app.append(tc);
+
+  meal.meals.forEach((m,i)=>{
+    if(m.prepNote){
+      const card=d({style:{background:"#f0fdf4",border:"2px dashed #10b981",borderRadius:"12px",padding:"14px",marginBottom:"10px"}});
+      card.append(
+        d({style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px"}},
+          s({style:{background:"#10b981",color:"white",borderRadius:"20px",padding:"2px 10px",fontSize:"11px",fontWeight:"800"}},m.time),
+          s({style:{fontWeight:"700",fontSize:"14px",color:"#10b981"}},`${m.name} — ${m.label}`)),
+        b({style:{background:"none",border:"none",color:"#10b981",fontWeight:"600",fontSize:"13px",cursor:"pointer",padding:"0"},
+          onClick:()=>{S.xMeal=S.xMeal===i?null:i;render();}},S.xMeal===i?"▲ hide steps":"▼ show prep steps")
+      );
+      if(S.xMeal===i) m.items.forEach(it=>card.append(d({style:{fontSize:"13px",color:it.startsWith("→")?"#10b981":"#475569",padding:"3px 0",fontWeight:it.startsWith("→")?"700":"400"}},it.startsWith("→")?it:`• ${it}`)));
+      app.append(card); return;
+    }
+
+    const card=d({style:{background:"#fff",borderRadius:"12px",padding:"14px",marginBottom:"10px",boxShadow:"0 1px 4px rgba(0,0,0,0.07)"}});
+    const tr2=d({style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}});
+    const lc=d({style:{flex:"1"}});
+    const br2=d({style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"4px"}});
+    br2.append(s({style:{background:col,color:"white",borderRadius:"20px",padding:"2px 10px",fontSize:"11px",fontWeight:"800"}},m.time));
+    if(m.preWorkout) br2.append(s({style:{background:"#fef3c7",color:"#b45309",borderRadius:"20px",padding:"2px 8px",fontSize:"10px",fontWeight:"800"}},"⚡ PRE-WORKOUT"));
+    lc.append(br2,d({style:{fontWeight:"700",fontSize:"14px"}},`${m.name} — ${m.label}`));
+    tr2.append(lc,s({style:{fontWeight:"800",fontSize:"13px",color:col,whiteSpace:"nowrap",marginLeft:"8px"}},`~${m.macros.cal} cal`));
+    card.append(tr2);
+
+    const pr=d({style:{display:"flex",gap:"5px",marginTop:"8px",flexWrap:"wrap",alignItems:"center"}});
+    [["P",m.macros.protein,"#ef4444"],["C",m.macros.carbs,"#f97316"],["F",m.macros.fat,"#3b82f6"]].forEach(([l,v,c])=>
+      pr.append(s({style:{background:`${c}15`,borderRadius:"20px",padding:"3px 10px",fontSize:"11px",fontWeight:"700",color:c}},`${l}: ${v}g`)));
+    pr.append(b({style:{marginLeft:"auto",fontSize:"12px",color:"#94a3b8",background:"none",border:"none",cursor:"pointer"},
+      onClick:()=>{S.xMeal=S.xMeal===i?null:i;render();}},S.xMeal===i?"▲ hide":"▼ ingredients"));
+    card.append(pr);
+
+    if(S.xMeal===i){
+      const il=d({style:{marginTop:"10px",paddingTop:"10px",borderTop:"1px solid #f1f5f9"}});
+      m.items.forEach((it,j)=>il.append(d({style:{fontSize:"13px",color:"#475569",padding:"4px 0",borderBottom:j<m.items.length-1?"1px solid #f8fafc":"none"}},`• ${it}`)));
+      card.append(il);
+    }
+
+    if(m.fastFood){
+      const ff=d({style:{marginTop:"10px",background:"#fff7ed",border:"1px solid #fed7aa",borderRadius:"10px",padding:"8px 12px"}});
+      ff.append(d({style:{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"},
+        onClick:()=>{S.xFast=S.xFast===i?null:i;render();}},
+        s({style:{fontWeight:"700",fontSize:"12px",color:"#ea580c"}},m.fastFood.name),
+        s({style:{fontSize:"11px",color:"#94a3b8"}},S.xFast===i?"▲":"▼")));
+      if(S.xFast===i){
+        m.fastFood.items.forEach(it=>ff.append(d({style:{fontSize:"12px",color:"#78350f",padding:"2px 0"}},`• ${it}`)));
+        const mr=d({style:{display:"flex",gap:"5px",marginTop:"6px",alignItems:"center"}});
+        [["P",m.fastFood.macros.protein,"#ef4444"],["C",m.fastFood.macros.carbs,"#f97316"],["F",m.fastFood.macros.fat,"#3b82f6"]].forEach(([l,v,c])=>
+          mr.append(s({style:{background:`${c}15`,borderRadius:"20px",padding:"2px 8px",fontSize:"11px",fontWeight:"700",color:c}},`${l}: ${v}g`)));
+        mr.append(s({style:{fontWeight:"800",fontSize:"11px",color:"#ea580c",marginLeft:"auto"}},`~${m.fastFood.macros.cal} cal`));
+        ff.append(mr);
+      }
+      card.append(ff);
+    }
+    app.append(card);
+  });
+}
+
+function renderWorkout(app){
+  const w=WORKOUTS[S.day];
+  if(!w){
+    app.append(d({style:{background:"#fff",borderRadius:"16px",padding:"32px",textAlign:"center"}},
+      d({style:{fontSize:"48px",marginBottom:"12px"}},"😴"),
+      d({style:{fontWeight:"800",fontSize:"18px",color:"#1e293b"}},"Rest Day"),
+      d({style:{color:"#64748b",marginTop:"8px",fontSize:"14px"}},"Recover, hydrate, and hit your meals.")));
+    return;
+  }
+  app.append(d({style:{background:w.color,borderRadius:"14px",padding:"14px",marginBottom:"14px",color:"white"}},
+    d({style:{fontWeight:"800",fontSize:"18px"}},w.type),
+    d({style:{fontSize:"13px",opacity:"0.85",marginTop:"4px"}},w.note)));
+  w.exercises.forEach(ex=>app.append(d({style:{background:"#fff",borderRadius:"12px",padding:"14px",marginBottom:"10px",display:"flex",justifyContent:"space-between",alignItems:"center",boxShadow:"0 1px 4px rgba(0,0,0,0.07)"}},
+    d({},d({style:{fontWeight:"700",fontSize:"15px"}},ex.name),d({style:{fontSize:"13px",color:"#94a3b8",marginTop:"2px"}},`Rest: ${ex.rest}`)),
+    s({style:{background:"#f8fafc",borderRadius:"8px",padding:"6px 12px",fontWeight:"800",fontSize:"13px",color:w.color,whiteSpace:"nowrap"}},ex.sets)
+  )));
+}
+
+function renderGrocery(app,col){
+  app.append(d({style:{background:"#fff",borderRadius:"14px",padding:"14px",marginBottom:"14px",boxShadow:"0 1px 4px rgba(0,0,0,0.07)"}},
+    d({style:{fontWeight:"800",fontSize:"16px",marginBottom:"4px"}},"🛒 Sunday Grocery List"),
+    d({style:{fontSize:"13px",color:"#64748b"}},"Exact quantities for the full week — tap to check off.")));
+  GROCERY.forEach((cat,ci)=>{
+    app.append(d({style:{fontWeight:"800",fontSize:"15px",marginBottom:"8px",color:"#1e293b"}},cat.category));
+    cat.items.forEach((item,ii)=>{
+      const key=`${ci}-${ii}`, chk=!!S.checked[key];
+      const card=d({style:{background:"#fff",borderRadius:"10px",padding:"12px 14px",marginBottom:"6px",display:"flex",alignItems:"center",gap:"12px",boxShadow:"0 1px 3px rgba(0,0,0,0.06)",cursor:"pointer",opacity:chk?"0.5":"1"},
+        onClick:()=>{S.checked[key]=!S.checked[key];localStorage.setItem("gc",JSON.stringify(S.checked));render();}});
+      card.append(
+        d({style:{width:"22px",height:"22px",borderRadius:"6px",border:`2px solid ${chk?col:"#cbd5e1"}`,background:chk?col:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:"0"}},
+          chk?s({style:{color:"white",fontSize:"13px",fontWeight:"800"}},"✓"):""),
+        d({style:{flex:"1"}},
+          d({style:{fontWeight:"700",fontSize:"14px",textDecoration:chk?"line-through":"none"}},item.item),
+          d({style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},`${item.qty} — ${item.note}`))
+      );
+      app.append(card);
+    });
+  });
+  app.append(b({style:{width:"100%",marginTop:"8px",padding:"12px",background:"#f1f5f9",border:"none",borderRadius:"12px",fontWeight:"700",fontSize:"14px",color:"#64748b",cursor:"pointer"},
+    onClick:()=>{S.checked={};localStorage.setItem("gc","{}");render();}
+  },"↺ Reset grocery list"));
+}
+
+render();
+</script>
+</body>
+</html>
